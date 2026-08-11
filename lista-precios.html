@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Precios · Salón</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --page-bg: #2E0F1B;
+    --page-bg-2: #3A1424;
+    --paper: #FBF3EA;
+    --paper-dim: #F1E5D8;
+    --ink: #2A1810;
+    --ink-soft: #6B564A;
+    --wine: #8C2F42;
+    --wine-dark: #6E2434;
+    --gold: #C79A44;
+    --sage: #4B6350;
+    --sage-dark: #384A3D;
+    --shadow: rgba(20,6,12,0.45);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(199,154,68,0.10), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(140,47,66,0.25), transparent 45%),
+      linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2) 100%);
+    font-family: 'Inter', sans-serif;
+    color: var(--paper);
+    padding: 48px 16px 80px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .header{ text-align:center; max-width:560px; margin-bottom:32px; }
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color: var(--gold);
+    margin-bottom:10px;
+  }
+  .biz-name{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(32px,6vw,52px);
+    line-height:1.05;
+    margin:0 0 8px;
+    color: var(--paper);
+  }
+  .tagline{
+    font-size:14px;
+    color: rgba(251,243,234,0.65);
+    margin:0;
+  }
+  .biz-name[contenteditable="true"], .tagline[contenteditable="true"]{
+    outline: 1px dashed rgba(199,154,68,0.6);
+    border-radius:4px;
+    cursor:text;
+  }
+
+  .tabs{
+    display:flex;
+    gap:10px;
+    margin-bottom: -14px;
+    z-index:2;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .tab{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:10px 18px 16px;
+    border:none;
+    border-radius:10px 10px 0 0;
+    cursor:pointer;
+    color: var(--paper);
+    opacity:0.55;
+    background: var(--wine-dark);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .tab.sage{ background: var(--sage-dark); }
+  .tab.active{ opacity:1; transform: translateY(0); }
+  .tab:not(.active):hover{ opacity:0.8; }
+
+  .ticket-wrap{ position:relative; width:100%; max-width:480px; z-index:1; }
+  .ticket{
+    background: var(--paper);
+    color: var(--ink);
+    position:relative;
+    padding: 30px 26px 22px;
+    box-shadow: 0 24px 48px var(--shadow), 0 2px 0 rgba(0,0,0,0.04);
+  }
+  .ticket::before, .ticket::after{
+    content:'';
+    position:absolute; left:0; right:0; height:13px;
+    background-image:
+      linear-gradient(-45deg, var(--page-bg-2) 7px, transparent 0),
+      linear-gradient(45deg, var(--page-bg-2) 7px, transparent 0);
+    background-size: 14px 14px;
+    background-position: left top;
+    background-repeat: repeat-x;
+  }
+  .ticket::before{ top:-1px; }
+  .ticket::after{ bottom:-1px; transform: scaleY(-1); }
+
+  .stub{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-bottom:14px; margin-bottom:14px;
+    border-bottom: 1px dashed rgba(42,24,16,0.25);
+  }
+  .stub-label{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.18em; color:var(--ink-soft); text-transform:uppercase;}
+  .barcode{ display:flex; gap:2px; align-items:flex-end; height:22px; }
+  .barcode span{ display:block; width:2px; background:var(--ink); opacity:0.6;}
+
+  .cat-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 14px;
+    color: var(--wine);
+  }
+  .cat-name[contenteditable="true"]{ outline:1px dashed var(--gold); border-radius:4px; }
+
+  .row{
+    display:flex; align-items:baseline; gap:6px;
+    padding:9px 0;
+  }
+  .row .name{ font-size:14.5px; white-space:nowrap; overflow:hidden; }
+  .row .leader{
+    flex:1; border-bottom: 1.5px dotted rgba(42,24,16,0.35);
+    margin-bottom:4px; min-width:12px;
+  }
+  .row .price{
+    font-family:'Space Mono', monospace;
+    font-weight:700; font-size:14.5px; color: var(--wine); white-space:nowrap;
+  }
+  .row.editing{ gap:8px; }
+  .row input.name-input{
+    font-family:'Inter'; font-size:14px; border:none; border-bottom:1px solid rgba(42,24,16,0.3);
+    background:transparent; padding:4px 2px; width:100%; color:var(--ink);
+  }
+  .row input.price-input{
+    font-family:'Space Mono', monospace; font-size:14px; border:none; border-bottom:1px solid rgba(42,24,16,0.3);
+    background:transparent; padding:4px 2px; width:78px; text-align:right; color:var(--wine); font-weight:700;
+  }
+  .row-del{
+    background:none; border:none; color:var(--ink-soft); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;
+  }
+  .row-del:hover{ color:var(--wine); }
+
+  .add-row{
+    font-family:'Space Mono', monospace; font-size:12px; color: var(--sage-dark);
+    background:none; border:1px dashed var(--sage-dark); border-radius:6px;
+    padding:7px 10px; margin-top:8px; cursor:pointer; width:100%;
+  }
+  .add-row:hover{ background: rgba(75,99,80,0.08); }
+
+  .footer-note{
+    text-align:center; font-size:12px; color: rgba(251,243,234,0.45); margin-top:26px;
+    font-family:'Space Mono', monospace;
+  }
+
+  .edit-fab{
+    position:fixed; top:18px; right:18px; z-index:10;
+    background: var(--paper); color: var(--ink);
+    border:none; border-radius:999px; width:42px; height:42px;
+    font-size:17px; cursor:pointer; box-shadow:0 6px 18px var(--shadow);
+  }
+  .edit-fab:hover{ transform:scale(1.05); }
+
+  .panel{
+    position:fixed; inset:0; background:rgba(20,6,12,0.6);
+    display:flex; align-items:center; justify-content:center; z-index:20; padding:20px;
+  }
+  .panel.hidden{ display:none; }
+  .panel-card{
+    background:var(--paper); color:var(--ink); border-radius:14px;
+    padding:26px; max-width:320px; width:100%; text-align:center;
+    box-shadow: 0 24px 48px var(--shadow);
+  }
+  .panel-card h3{ font-family:'Fraunces',serif; margin:0 0 6px; font-size:20px;}
+  .panel-card p{ font-size:13px; color:var(--ink-soft); margin:0 0 16px;}
+  .panel-card input{
+    width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(42,24,16,0.25);
+    font-family:'Space Mono',monospace; font-size:15px; text-align:center; letter-spacing:0.3em;
+    margin-bottom:12px;
+  }
+  .panel-actions{ display:flex; gap:8px; }
+  .btn{
+    flex:1; padding:10px; border-radius:8px; border:none; cursor:pointer; font-family:'Inter';
+    font-size:13px; font-weight:600;
+  }
+  .btn-primary{ background: var(--wine); color: var(--paper); }
+  .btn-primary:hover{ background: var(--wine-dark); }
+  .btn-ghost{ background: transparent; color: var(--ink-soft); border:1px solid rgba(42,24,16,0.2); }
+  .error-text{ color:var(--wine); font-size:12px; margin-top:-6px; margin-bottom:10px; display:none;}
+
+  .save-bar{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    background: var(--paper); color:var(--ink); padding:10px 14px; border-radius:10px;
+    display:flex; gap:8px; box-shadow:0 12px 30px var(--shadow); z-index:15; align-items:center;
+  }
+  .save-bar.hidden{ display:none; }
+  .save-bar .btn{ padding:8px 14px; }
+  .toast{
+    position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+    background: var(--sage-dark); color:var(--paper); padding:8px 16px; border-radius:8px;
+    font-size:13px; z-index:25; opacity:0; transition:opacity .3s ease; pointer-events:none;
+  }
+  .toast.show{ opacity:1; }
+
+  .loading{ font-family:'Space Mono',monospace; font-size:13px; color: var(--gold); }
+
+  @media (max-width:420px){
+    .row .name{ font-size:13.5px; }
+    .biz-name{ font-size:30px; }
+  }
+</style>
+</head>
+<body>
+
+  <button class="edit-fab" id="editFab" title="Editar precios">✎</button>
+
+  <div class="header">
+    <div class="eyebrow">Lista de precios</div>
+    <h1 class="biz-name" id="bizName" contenteditable="false">Estudio Belén</h1>
+    <p class="tagline" id="tagline" contenteditable="false">Peluquería &amp; manicure — La Serena</p>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="ticket-wrap">
+    <div class="ticket" id="ticket">
+      <div class="stub">
+        <span class="stub-label" id="stubLabel">Actualizado —</span>
+        <span class="barcode" id="barcode"></span>
+      </div>
+      <div id="loadingMsg" class="loading">Cargando precios…</div>
+      <div id="ticketBody" style="display:none;">
+        <h2 class="cat-name" id="catName" contenteditable="false"></h2>
+        <div id="rows"></div>
+        <button class="add-row" id="addRowBtn" style="display:none;">+ Agregar servicio</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">gracias por tu preferencia ✂ 💅</div>
+
+  <!-- PIN panel -->
+  <div class="panel hidden" id="pinPanel">
+    <div class="panel-card">
+      <h3>Modo edición</h3>
+      <p>Ingresa el PIN para actualizar precios</p>
+      <input type="password" id="pinInput" maxlength="6" placeholder="••••">
+      <div class="error-text" id="pinError">PIN incorrecto</div>
+      <div class="panel-actions">
+        <button class="btn btn-ghost" id="pinCancel">Cancelar</button>
+        <button class="btn btn-primary" id="pinSubmit">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save bar -->
+  <div class="save-bar hidden" id="saveBar">
+    <span style="font-size:12px;">Editando…</span>
+    <button class="btn btn-ghost" id="cancelEdit">Cancelar</button>
+    <button class="btn btn-primary" id="saveEdit">Guardar cambios</button>
+  </div>
+
+  <div class="toast" id="toast">Guardado ✓</div>
+
+<script>
+const STORAGE_KEY = 'salon:pricelist';
+const EDIT_PIN = '1234'; // cámbialo aquí si quieres otro PIN
+
+const DEFAULT_DATA = {
+  bizName: 'Estudio Belén',
+  tagline: 'Peluquería & manicure — La Serena',
+  updatedAt: null,
+  categories: [
+    {
+      id: 'pelu',
+      name: 'Peluquería',
+      color: 'wine',
+      services: [
+        { id: 's1', name: 'Corte dama', price: 12000 },
+        { id: 's2', name: 'Corte caballero', price: 8000 },
+        { id: 's3', name: 'Brushing', price: 9000 },
+        { id: 's4', name: 'Color raíz', price: 18000 },
+        { id: 's5', name: 'Color completo', price: 25000 },
+        { id: 's6', name: 'Mechas / balayage', price: 35000 },
+        { id: 's7', name: 'Tratamiento capilar', price: 15000 },
+        { id: 's8', name: 'Alisado', price: 40000 }
+      ]
+    },
+    {
+      id: 'mani',
+      name: 'Manicure & Pedicure',
+      color: 'sage',
+      services: [
+        { id: 'm1', name: 'Manicure clásica', price: 7000 },
+        { id: 'm2', name: 'Manicure semipermanente', price: 12000 },
+        { id: 'm3', name: 'Pedicure clásica', price: 9000 },
+        { id: 'm4', name: 'Pedicure spa', price: 14000 },
+        { id: 'm5', name: 'Esmaltado gel', price: 10000 },
+        { id: 'm6', name: 'Retiro de esmalte gel', price: 4000 },
+        { id: 'm7', name: 'Diseño de uñas (por uña)', price: 1000 }
+      ]
+    }
+  ]
+};
+
+let state = null;
+let activeCat = 0;
+let editMode = false;
+let draft = null; // working copy while editing
+
+const $ = (sel) => document.querySelector(sel);
+
+function fmtCLP(n){
+  return '$' + Number(n).toLocaleString('es-CL');
+}
+
+function uid(prefix){ return prefix + Math.random().toString(36).slice(2,8); }
+
+function buildBarcode(){
+  const bc = $('#barcode');
+  bc.innerHTML = '';
+  for(let i=0;i<26;i++){
+    const bar = document.createElement('span');
+    const h = 8 + Math.round(Math.random()*14);
+    bar.style.height = h + 'px';
+    bc.appendChild(bar);
+  }
+}
+
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    if(res && res.value){
+      state = JSON.parse(res.value);
+      return;
+    }
+  }catch(e){
+    // no existe aún, usamos default
+  }
+  state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+async function persist(){
+  await window.storage.set(STORAGE_KEY, JSON.stringify(state), true);
+}
+
+function showToast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+function renderHeader(){
+  $('#bizName').textContent = state.bizName;
+  $('#tagline').textContent = state.tagline;
+  const upd = state.updatedAt ? new Date(state.updatedAt).toLocaleDateString('es-CL', {day:'2-digit', month:'short'}) : '—';
+  $('#stubLabel').textContent = 'Actualizado ' + upd;
+}
+
+function renderTabs(){
+  const wrap = $('#tabs');
+  wrap.innerHTML = '';
+  state.categories.forEach((cat, i)=>{
+    const b = document.createElement('button');
+    b.className = 'tab ' + (cat.color === 'sage' ? 'sage' : '') + (i===activeCat ? ' active' : '');
+    b.textContent = cat.name;
+    b.onclick = ()=>{ activeCat = i; renderAll(); };
+    wrap.appendChild(b);
+  });
+  if(editMode){
+    const addB = document.createElement('button');
+    addB.className = 'tab';
+    addB.style.opacity = '0.9';
+    addB.textContent = '+ categoría';
+    addB.onclick = ()=>{
+      state.categories.push({id: uid('cat'), name:'Nueva categoría', color: state.categories.length % 2 ? 'sage':'wine', services:[]});
+      activeCat = state.categories.length - 1;
+      renderAll();
+    };
+    wrap.appendChild(addB);
+  }
+}
+
+function renderTicket(){
+  const cat = state.categories[activeCat];
+  if(!cat){ activeCat = 0; }
+  const catRef = state.categories[activeCat];
+  const catNameEl = $('#catName');
+  catNameEl.textContent = catRef.name;
+  catNameEl.contentEditable = editMode ? 'true' : 'false';
+  catNameEl.oninput = ()=>{ catRef.name = catNameEl.textContent; };
+
+  const rowsWrap = $('#rows');
+  rowsWrap.innerHTML = '';
+  catRef.services.forEach((svc)=>{
+    const row = document.createElement('div');
+    row.className = 'row' + (editMode ? ' editing' : '');
+    if(editMode){
+      row.innerHTML = `
+        <input class="name-input" value="${escapeHtml(svc.name)}">
+        <input class="price-input" type="number" value="${svc.price}">
+        <button class="row-del" title="Eliminar">✕</button>
+      `;
+      const [nameInput, priceInput] = row.querySelectorAll('input');
+      nameInput.oninput = ()=>{ svc.name = nameInput.value; };
+      priceInput.oninput = ()=>{ svc.price = Number(priceInput.value)||0; };
+      row.querySelector('.row-del').onclick = ()=>{
+        catRef.services = catRef.services.filter(s=>s.id!==svc.id);
+        renderTicket();
+      };
+    }else{
+      row.innerHTML = `
+        <span class="name">${escapeHtml(svc.name)}</span>
+        <span class="leader"></span>
+        <span class="price">${fmtCLP(svc.price)}</span>
+      `;
+    }
+    rowsWrap.appendChild(row);
+  });
+
+  $('#addRowBtn').style.display = editMode ? 'block' : 'none';
+  $('#addRowBtn').onclick = ()=>{
+    catRef.services.push({id: uid('svc'), name:'Nuevo servicio', price:0});
+    renderTicket();
+  };
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderAll(){
+  renderHeader();
+  renderTabs();
+  renderTicket();
+  $('#bizName').contentEditable = editMode ? 'true' : 'false';
+  $('#tagline').contentEditable = editMode ? 'true' : 'false';
+  $('#saveBar').classList.toggle('hidden', !editMode);
+}
+
+// --- Edit mode flow ---
+$('#editFab').onclick = ()=>{
+  if(editMode) return;
+  $('#pinPanel').classList.remove('hidden');
+  $('#pinInput').value = '';
+  $('#pinError').style.display = 'none';
+  $('#pinInput').focus();
+};
+$('#pinCancel').onclick = ()=> $('#pinPanel').classList.add('hidden');
+$('#pinSubmit').onclick = attemptPin;
+$('#pinInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') attemptPin(); });
+
+function attemptPin(){
+  if($('#pinInput').value === EDIT_PIN){
+    draft = JSON.parse(JSON.stringify(state));
+    editMode = true;
+    $('#pinPanel').classList.add('hidden');
+    renderAll();
+  }else{
+    $('#pinError').style.display = 'block';
+  }
+}
+
+$('#cancelEdit').onclick = ()=>{
+  state = draft;
+  editMode = false;
+  renderAll();
+};
+
+$('#saveEdit').onclick = async ()=>{
+  state.bizName = $('#bizName').textContent.trim() || state.bizName;
+  state.tagline = $('#tagline').textContent.trim() || state.tagline;
+  state.updatedAt = Date.now();
+  try{
+    await persist();
+    editMode = false;
+    renderAll();
+    showToast('Guardado ✓');
+  }catch(e){
+    showToast('Error al guardar, intenta de nuevo');
+  }
+};
+
+// --- Init ---
+(async function init(){
+  buildBarcode();
+  await loadData();
+  $('#loadingMsg').style.display = 'none';
+  $('#ticketBody').style.display = 'block';
+  renderAll();
+})();
+</script>
+</body>
+</html>
